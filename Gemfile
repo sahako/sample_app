@@ -15,6 +15,7 @@ group :development, :test do
   gem 'guard-spork', '1.2.0' 
   gem 'spork', '0.9.2'
   gem 'childprocess', '0.3.6'
+  gem 'annotate', '2.5.0'
 
   gem 'linecache19', '0.5.13', :path => "~/.rvm/gems/ruby-1.9.3-p392/gems/linecache19-0.5.13/"
   gem 'ruby-debug-base19', '0.11.26', :path => "~/.rvm/gems/ruby-1.9.3-p392/gems/ruby-debug-base19-0.11.26/"
