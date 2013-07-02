@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # == Schema Information
 #
 # Table name: users
@@ -9,20 +10,24 @@
 #  updated_at      :datetime         not null
 #  password_digest :string(255)
 #  remember_token  :string(255)
+#  admin           :boolean          default(FALSE)
 #
-
 
 require 'spec_helper'
 
 describe User do
 
+  # 前処理
   before do
     @user = User.new(name: "Example User", email: "user@example.com",
                      password: "foobar", password_confirmation: "foobar")
   end
 
+  # デフォルト
   subject { @user }
 
+
+  # 属性の存在テスト
   it { should respond_to(:name) }
   it { should respond_to(:email) }
   it { should respond_to(:password_digest) }
@@ -32,26 +37,12 @@ describe User do
   it { should respond_to(:authenticate) }
 
 
+  # オブジェクトが有効かどうかの確認
   it { should be_valid }
-  it { should_not be_admin }
-
-  describe "with admin attribute set to 'true'" do
-    before do
-      @user.save!
-      @user.toggle!(:admin)
-    end
-
-    it { should be_admin }
-  end
-
-
-
-
-
 
   describe "when name is not present" do
-    before { @user.name = " " }
-    it { should_not be_valid }
+    before { @user.name = " " } # 無効な値を設定し
+    it { should_not be_valid }  # オブジェクトの結果も無効になることをテスト
   end
 
   describe "when email is not present" do
@@ -60,11 +51,22 @@ describe User do
   end
 
   describe "when name is too long" do
-    before { @user.name = "a" * 51 }
+    before { @user.name = "a" * 51 } # 長すぎる値
     it { should_not be_valid }
   end
 
-  describe "when email format is valid" do
+  describe "when email format is invalid" do # 無効なメールアドレス形式
+    it "should be invalid" do
+      addresses = %w[user@foo,com user_at_foo.org example.user@foo.
+                     foo@bar_baz.com foo@bar+baz.com]
+      addresses.each do |invalid_address|
+        @user.email = invalid_address
+        @user.should_not be_valid
+      end
+    end
+  end
+
+  describe "when email format is valid" do # 有効なメールアドレス形式
     it "should be valid" do
       addresses = %w[user@foo.COM A_US-ER@f.b.org frst.lst@foo.jp a+b@baz.cn]
       addresses.each do |valid_address|
@@ -74,29 +76,24 @@ describe User do
     end
   end
 
-  describe "when email address is already taken" do
+  describe "when email address is already taken" do # メールアドレスの重複
     before do
-      user_with_same_email = @user.dup
-      user_with_same_email.email = @user.email.upcase
+      user_with_same_email = @user.dup # 複製
+      user_with_same_email.email = @user.email.upcase # 大文字
       user_with_same_email.save
     end
-
     it { should_not be_valid }
   end
 
   describe "email address with mixed case" do
     let(:mixed_case_email) { "Foo@ExAMPle.CoM" }
 
-    it "should be saved as all lower-case" do
+    it "should be saved as all lower-case" do # 小文字変換のテスト
       @user.email = mixed_case_email
       @user.save
       @user.reload.email.should == mixed_case_email.downcase
     end
   end
-
-
-
-
 
   describe "when password is not present" do
     before { @user.password = @user.password_confirmation = " " }
@@ -113,34 +110,41 @@ describe User do
     it { should_not be_valid }
   end
 
-
   describe "with a password that's too short" do
     before { @user.password = @user.password_confirmation = "a" * 5 }
     it { should be_invalid }
   end
-
 
   describe "return value of authenticate method" do
     before { @user.save }
     let(:found_user) { User.find_by_email(@user.email) }
 
     describe "with valid password" do
-      it { should == found_user.authenticate(@user.password) }
+      it { should == found_user.authenticate(@user.password) } # 一致
     end
 
     describe "with invalid password" do
-      let(:user_for_invalid_password) { found_user.authenticate("invalid") }
+      let(:user_for_invalid_password) { found_user.authenticate("invalid") } # 不一致
 
       it { should_not == user_for_invalid_password }
       specify { user_for_invalid_password.should be_false }
     end
   end
 
-
   describe "remember token" do
     before { @user.save }
-    its(:remember_token) { should_not be_blank }
+    its(:remember_token) { should_not be_blank } # ブランクでない
   end
 
+  # オブジェクトが admin でない
+  it { should_not be_admin }
 
+  describe "with admin attribute set to 'true'" do
+    before do
+      @user.save!
+      @user.toggle!(:admin)
+    end
+
+    it { should be_admin }
+  end
 end

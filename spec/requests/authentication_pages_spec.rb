@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'spec_helper'
 
 describe "Authentication" do
@@ -15,19 +16,19 @@ describe "Authentication" do
   describe "signin" do
     before { visit signin_path }
 
-    describe "with invalid information" do
+    describe "with invalid information" do # 正しくないサインイン情報
       before { click_button "Sign in" }
 
       it { should have_selector('title', text: 'Sign in') }
-      it { should have_selector('div.alert.alert-error', text: 'Invalid') }
+      it { should have_selector('div.alert.alert-error', text: 'Invalid') } # エラーメッセージ
 
-      describe "after visiting another page" do
+      describe "after visiting another page" do # 画面が遷移したらエラーメッセージが消えること
         before { click_link "Home" }
         it { should_not have_selector('div.alert.alert-error') }
       end
     end
 
-    describe "with valid information" do
+    describe "with valid information" do # 正しいサインイン情報
       let(:user) { FactoryGirl.create(:user) }
 
       before do
@@ -36,17 +37,14 @@ describe "Authentication" do
         click_button "Sign in"
       end
 
-      before { sign_in user }
-
       it { should have_selector('title', text: user.name) }
-
       it { should have_link('Users',    href: users_path) }
       it { should have_link('Profile', href: user_path(user)) }
       it { should have_link('Settings', href: edit_user_path(user)) }
       it { should have_link('Sign out', href: signout_path) }
       it { should_not have_link('Sign in', href: signin_path) }
 
-      describe "followed by signout" do
+      describe "followed by signout" do # サインアウト
         before { click_link "Sign out" }
         it { should have_link('Sign in') }
       end
@@ -116,7 +114,7 @@ describe "Authentication" do
 
       describe "submitting a DELETE request to the Users#destroy action" do
         before { delete user_path(user) }
-        specify { response.should redirect_to(root_path) }        
+        specify { response.should redirect_to(root_path) }
       end
     end
   end
